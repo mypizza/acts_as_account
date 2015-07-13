@@ -45,13 +45,14 @@ module ActsAsAccount
 
     private
 
-      def add_posting(amount, account, other_account, reference, valuta)
+      def add_posting(amount, account, other_account, reference, valuta, category = nil)
         posting = postings.build(
           :amount => amount,
           :account => account,
           :other_account => other_account,
           :reference => reference,
-          :valuta => valuta)
+          :valuta => valuta
+          :category => category)
 
         account.class.update_counters account.id, :postings_count => 1, :balance => posting.amount
 
