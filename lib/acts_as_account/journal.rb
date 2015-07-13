@@ -51,7 +51,7 @@ module ActsAsAccount
           :account => account,
           :other_account => other_account,
           :reference => reference,
-          :valuta => valuta
+          :valuta => valuta,
           :category => category)
 
         account.reload.balance += posting.amount
