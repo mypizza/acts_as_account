@@ -25,7 +25,7 @@ module ActsAsAccount
       end
     end
 
-    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now)
+    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, category = nil)
       transaction do
         if (amount < 0)
           # change order if amount is negative
@@ -38,8 +38,8 @@ module ActsAsAccount
         # the same therfore the sort by id.
         [from_account, to_account].sort_by(&:id).map(&:lock!)
 
-        add_posting(-amount,  from_account,   to_account, reference, valuta)
-        add_posting( amount,    to_account, from_account, reference, valuta)
+        add_posting(-amount,  from_account,   to_account, reference, valuta, category)
+        add_posting( amount,    to_account, from_account, reference, valuta, category)
       end
     end
 
