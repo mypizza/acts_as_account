@@ -25,7 +25,7 @@ module ActsAsAccount
       end
     end
 
-    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, category = nil)
+    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, category)
       transaction do
         if (amount < 0)
           # change order if amount is negative
