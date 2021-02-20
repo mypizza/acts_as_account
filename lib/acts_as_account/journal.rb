@@ -34,9 +34,10 @@ module ActsAsAccount
 
         logger.debug { "ActsAsAccount::Journal.transfer amount: #{amount} from:#{from_account.id} to:#{to_account.id} reference:#{reference.class.name}(#{reference.id}) valuta:#{valuta} description:#{description}" } if logger
 
+        # (meriton): Line 40 is commented to address locking during high volume. See line 58
         # to avoid possible deadlocks we need to ensure that the locking order is always
         # the same therfore the sort by id.
-        [from_account, to_account].sort_by(&:id).map(&:lock!)
+        # [from_account, to_account].sort_by(&:id).map(&:lock!)
 
         add_posting(-amount,  from_account,   to_account, reference, valuta, description)
         add_posting( amount,    to_account, from_account, reference, valuta, description)
@@ -54,7 +55,9 @@ module ActsAsAccount
           :valuta => valuta,
           :description => description)
 
-        account.class.update_counters account.id, :postings_count => 1, :balance => posting.amount
+        # (meriton): We do not utilize postings count or balance. It requires a lock to function
+        # properlly, which does not scale to our needs.
+        # account.class.update_counters account.id, :postings_count => 1, :balance => posting.amount
 
         posting.save(:validate => false)
         account.save(:validate => false)
