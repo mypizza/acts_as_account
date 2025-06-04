@@ -36,6 +36,8 @@ ActiveRecord::Schema.define(:version => 1) do
 
     t.datetime "valuta"
 
+    t.integer "shop_id"
+
     t.datetime "created_at"
     t.datetime "updated_at"
   end
