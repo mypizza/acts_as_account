@@ -8,6 +8,7 @@ module ActsAsAccount
     belongs_to :other_account, :class_name => 'ActsAsAccount::Account'
     belongs_to :journal,       :class_name => 'ActsAsAccount::Journal'
     belongs_to :reference, :polymorphic => true
+    belongs_to :shop, foreign_key: 'shop_id'
     has_one :posting_setting, foreign_key: :acts_as_account_posting_id
     has_one :reason, through: :posting_setting
     has_one :admin, through: :posting_setting
