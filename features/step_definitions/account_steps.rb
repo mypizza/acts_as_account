@@ -2,12 +2,21 @@
 
 include ActsAsAccount
 
+require 'rspec'
+RSpec.configure do |config|
+  config.expect_with(:rspec) { |c| c.syntax = :should }
+end
+
 def german_date_time_to_local(datestring, timestring)
   Time.local(*(datestring.split(".").reverse + timestring.split(":")).map(&:to_i))
 end
 
 Given /^I create a user (\w+)$/ do |name|
   User.create!(:name => name)
+end
+
+Given /^I configure attribute persistence to be (\w+)$/ do |flag|
+  ActsAsAccount.configuration.persist_attributes_on_account = flag == 'true'
 end
 
 Given /^I have a user (\w+) that inherits from an abstract class$/ do |name|
@@ -62,15 +71,16 @@ Then /^the global (\w+) account balance is (-?\d+) €$/ do |name, balance|
 end
 
 When /^I transfer (-?\d+) € from (\w+)'s account to (\w+)'s account$/ do |amount, from, to|
-  from_account = User.find_by_name(from).account
-  to_account = User.find_by_name(to).account
-  Journal.current.transfer(amount.to_i, from_account, to_account, @reference, @valuta)
+  @from_account = User.find_by_name(from).account
+  @to_account = User.find_by_name(to).account
+  @previous_account_attributes = [@from_account.attributes, @to_account.attributes]
+  Journal.current.transfer(amount.to_i, @from_account, @to_account, @reference, @valuta) == true
 end
 
 When /^I transfer (\d+) € from global (\w+) account to global (\w+) account$/ do |amount, from, to|
   from_account = Account.for(from)
   to_account = Account.for(to)
-  Journal.current.transfer(amount.to_i, from_account, to_account, @reference, @valuta)
+  Journal.current.transfer(amount.to_i, from_account, to_account, @reference, @valuta) == true
 end
 
 Then /^the balance\-sheet should be:$/ do |table|
@@ -89,7 +99,7 @@ When /^I create a Journal via (.+)$/ do |method|
     eval <<-EOT
     @journal = Journal.#{method}
     EOT
-  rescue Exception => @last_exception
+  rescue => @last_exception
   end
 end
 
@@ -147,7 +157,7 @@ end
 
 Then /^the order of the postings is correct$/ do
   # make sure we always book "Soll an Haben"
-  Posting.all.in_groups_of(2) do |from, to|
+  Posting.all.each_slice(2) do |from, to|
     from.amount.should be < 0
     to.amount.should be > 0
   end
@@ -166,4 +176,13 @@ end
 
 When /^I call 'account' on both it should be possible$/ do
   [@user1, @user2].each { |user| user.account }
+end
+
+Then('there are no changes to the accounts') do
+  @previous_account_attributes.should eq [@from_account.reload.attributes, @to_account.reload.attributes]
+end
+
+Then('the balance field changed on the accounts') do
+  @from_account.reload.read_attribute(:balance).should_not eq @previous_account_attributes.first['balance']
+  @to_account.reload.read_attribute(:balance).should_not eq @previous_account_attributes.last['balance']
 end

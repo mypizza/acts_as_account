@@ -20,9 +20,7 @@ module ActsAsAccount
     end
 
     def transfers
-      [].tap do |transfers|
-        postings.in_groups_of(2) { |postings| transfers << Transfer.new(*postings) }
-      end
+      postings.each_slice(2).map { |postings| Transfer.new(*postings) }
     end
 
     def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, description = nil, shop_id = nil)
@@ -32,33 +30,54 @@ module ActsAsAccount
           amount, from_account, to_account = -amount, to_account, from_account
         end
 
-        logger.debug { "ActsAsAccount::Journal.transfer amount: #{amount} from:#{from_account.id} to:#{to_account.id} reference:#{reference.class.name}(#{reference.id}) valuta:#{valuta} description:#{description}" } if logger
+        if logger
+          logger.debug(
+            [
+              "ActsAsAccount::Journal.transfer",
+              "amount: #{amount}",
+              "from: #{from_account.id}",
+              "to: #{to_account.id}",
+              "reference: #{reference.class.name}(#{reference&.id})",
+              "valuta: #{valuta}",
+            ].join(' ')
+          )
+        end
 
-        # to avoid possible deadlocks we need to ensure that the locking order is always
-        # the same therfore the sort by id.
-        [from_account, to_account].sort_by(&:id).map(&:lock!)
+        # To avoid possible deadlocks we need to ensure that the locking order
+        # is always the same therfore the sort by id.
+        if ActsAsAccount.configuration.persist_attributes_on_account
+          [from_account, to_account].sort_by(&:id).each(&:lock!)
+        end
 
-        add_posting(-amount,  from_account,   to_account, reference, valuta, description, shop_id)
-        add_posting( amount,    to_account, from_account, reference, valuta, description, shop_id)
+        posting1 = build_posting(-amount,  from_account,   to_account, reference, valuta, shop_id)
+        posting2 = build_posting( amount,    to_account, from_account, reference, valuta, shop_id)
+
+        result = postings.model.insert_all([ posting1.attributes.compact, posting2.attributes.compact ])
+
+        update_attributes_on(from_account, -amount)
+        update_attributes_on(to_account,    amount)
+
+        !!result
       end
     end
 
     private
 
-      def add_posting(amount, account, other_account, reference, valuta, description, shop_id)
-        posting = postings.build(
-          :amount => amount,
-          :account => account,
+      def build_posting(amount, account, other_account, reference, valuta, shop_id)
+        postings.build(
+          :amount        => amount,
+          :account       => account,
           :other_account => other_account,
-          :reference => reference,
-          :valuta => valuta,
-          :description => description,
-          :shop_id => shop_id)
+          :reference     => reference,
+          :valuta        => valuta
+          :shop_id       => shop_id
+        )
+      end
 
-        account.class.update_counters account.id, :postings_count => 1, :balance => posting.amount
+      def update_attributes_on(account, amount)
+        return unless ActsAsAccount.configuration.persist_attributes_on_account
 
-        posting.save(:validate => false)
-        account.save(:validate => false)
+        account.class.update_counters account.id, postings_count: 1, balance: amount
       end
   end
 end

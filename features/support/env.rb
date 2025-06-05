@@ -6,21 +6,29 @@ if ENV['START_SIMPLECOV'].to_i == 1
 end
 
 require 'acts_as_account'
-require 'complex_config'
-config =ComplexConfig::Provider.config File.dirname(__FILE__) + '/../db/database.yml'
-ActiveRecord::Base.establish_connection(config.acts_as_account.to_h)
+require_relative 'db'
 
 require 'database_cleaner'
 require 'database_cleaner/cucumber'
 DatabaseCleaner.strategy = :transaction
 
-Dir[File.dirname(__FILE__) + '/../step_definitions/*.rb'].each { |file| require file }
+Dir["#{__dir__}/../step_definitions/*.rb"].sort.each { |file| require file }
 
-require File.dirname(__FILE__) + '/user'
-require File.dirname(__FILE__) + '/abstract_user'
-require File.dirname(__FILE__) + '/inheriting_user'
-require File.dirname(__FILE__) + '/cheque'
+require_relative 'user'
+require_relative 'abstract_user'
+require_relative 'inheriting_user'
+require_relative 'cheque'
 
 After do
   ActsAsAccount::Journal.clear_current
+end
+
+Before do
+  ActsAsAccount.configure do |config|
+    # Default values:
+    # config.persist_attributes_on_account = true
+  end
+  if ENV['DATABASE_LOG'].to_i == 1 && ActiveRecord::Base.logger.nil?
+    ActiveRecord::Base.logger = Logger.new(File.open("log/cucumber.log", 'a'))
+  end
 end
