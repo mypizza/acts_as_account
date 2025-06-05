@@ -25,7 +25,7 @@ module ActsAsAccount
       end
     end
 
-    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, description = nil)
+    def transfer(amount, from_account, to_account, reference = nil, valuta = Time.now, description = nil, shop_id = nil)
       transaction do
         if (amount < 0)
           # change order if amount is negative
@@ -38,21 +38,22 @@ module ActsAsAccount
         # the same therfore the sort by id.
         [from_account, to_account].sort_by(&:id).map(&:lock!)
 
-        add_posting(-amount,  from_account,   to_account, reference, valuta, description)
-        add_posting( amount,    to_account, from_account, reference, valuta, description)
+        add_posting(-amount,  from_account,   to_account, reference, valuta, description, shop_id)
+        add_posting( amount,    to_account, from_account, reference, valuta, description, shop_id)
       end
     end
 
     private
 
-      def add_posting(amount, account, other_account, reference, valuta, description)
+      def add_posting(amount, account, other_account, reference, valuta, description, shop_id)
         posting = postings.build(
           :amount => amount,
           :account => account,
           :other_account => other_account,
           :reference => reference,
           :valuta => valuta,
-          :description => description)
+          :description => description,
+          :shop_id => shop_id)
 
         account.class.update_counters account.id, :postings_count => 1, :balance => posting.amount
 
