@@ -43,7 +43,6 @@ ActiveRecord::Schema.define(:version => 1) do
   end
   add_index "acts_as_account_postings", "account_id"
   add_index "acts_as_account_postings", "journal_id"
-  add_index "acts_as_account_postings", "shop_id"
   add_index "acts_as_account_postings", ["reference_type", "reference_id"], :name => "reference"
   add_index "acts_as_account_postings", ["valuta", "id"], :name => "sort_key"
 
