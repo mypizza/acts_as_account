@@ -36,6 +36,8 @@ ActiveRecord::Schema.define(:version => 1) do
 
     t.datetime "valuta"
 
+    t.integer "shop_id"
+
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -43,7 +45,7 @@ ActiveRecord::Schema.define(:version => 1) do
   add_index "acts_as_account_postings", "journal_id"
   add_index "acts_as_account_postings", ["reference_type", "reference_id"], :name => "reference"
   add_index "acts_as_account_postings", ["valuta", "id"], :name => "sort_key"
-  
+
   execute "ALTER TABLE acts_as_account_postings ADD CONSTRAINT account_id FOREIGN KEY (account_id) REFERENCES acts_as_account_accounts (id)"
   execute "ALTER TABLE acts_as_account_postings ADD CONSTRAINT other_account_id FOREIGN KEY (other_account_id) REFERENCES acts_as_account_accounts (id)"
   execute "ALTER TABLE acts_as_account_postings ADD CONSTRAINT journal_id FOREIGN KEY (journal_id) REFERENCES acts_as_account_journals (id)"
