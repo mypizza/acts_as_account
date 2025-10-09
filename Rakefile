@@ -27,6 +27,7 @@ GemHadar do
 end
 
 def connect_database
+  require 'logger'
   require 'active_record'
   require 'complex_config'
   config = ComplexConfig::Provider.config 'features/db/database.yml'

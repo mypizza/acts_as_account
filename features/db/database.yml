@@ -3,4 +3,4 @@ acts_as_account:
   encoding: utf8
   database: acts_as_account
   username: root
-  host: localhost
+  host: 127.0.0.1
