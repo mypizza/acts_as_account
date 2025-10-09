@@ -1,3 +1,6 @@
+require 'active_support'
+require 'active_support/core_ext/array/grouping'
+
 module ActsAsAccount
   class Journal < ActiveRecord::Base
     self.table_name = :acts_as_account_journals
@@ -21,7 +24,7 @@ module ActsAsAccount
 
     def transfers
       [].tap do |transfers|
-        postings.in_groups_of(2) { |postings| transfers << Transfer.new(*postings) }
+        postings.to_a.in_groups_of(2) { |postings| transfers << Transfer.new(*postings) }
       end
     end
 

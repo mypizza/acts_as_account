@@ -1,4 +1,6 @@
 # encoding: utf-8
+require 'active_support'
+require 'active_support/core_ext/array/grouping'
 
 include ActsAsAccount
 
@@ -147,7 +149,7 @@ end
 
 Then /^the order of the postings is correct$/ do
   # make sure we always book "Soll an Haben"
-  Posting.all.in_groups_of(2) do |from, to|
+  Posting.all.to_a.in_groups_of(2) do |from, to|
     from.amount.should be < 0
     to.amount.should be > 0
   end
