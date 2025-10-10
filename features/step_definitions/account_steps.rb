@@ -56,11 +56,11 @@ Then /^the journal has (\d+) postings? with an amount of (\d+) €$/ do |num_pos
 end
 
 Then /^(\w+)'s account balance is (-?\d+) €$/ do |name, balance|
-  balance.to_i.should eq User.find_by_name(name).account.balance
+  balance.to_i.should eq User.find_by_name(name).account.postings.sum(:amount)
 end
 
 Then /^the global (\w+) account balance is (-?\d+) €$/ do |name, balance|
-  balance.to_i.should eq Account.for(name).balance
+  balance.to_i.should eq Account.for(name).postings.sum(:amount)
 end
 
 When /^I transfer (-?\d+) € from (\w+)'s account to (\w+)'s account$/ do |amount, from, to|
