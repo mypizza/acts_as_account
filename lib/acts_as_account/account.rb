@@ -6,6 +6,14 @@ module ActsAsAccount
     has_many :postings, :class_name => 'ActsAsAccount::Posting'
     has_many :journals, :through => :postings
 
+    def balance
+      raise "Account#balance has been removed"
+    end
+
+    def postings_count
+      raise "Account#postings_count has been removed"
+    end
+
     # TODO: discuss with norman:
     # validates_presence_of will force an ActiveRecord::find on the object
     # but we have to create accounts for deleted holder!
