@@ -8,7 +8,7 @@ GemHadar do
   email       'developers@betterplace.org'
   homepage    "http://github.com/betterplace/acts_as_account"
   summary     'acts_as_account implements double entry accounting for Rails models'
-  description 'acts_as_account implements double entry accounting for Rails models. Your models get accounts and you can do consistent transactions between them. Since the documentation is sparse, see the transfer.feature for usage examples.'
+  description 'acts_as_account implements double entry accounting for Rails models. Your models get accounts and you can do consistent transactions between them. Since the documentation is sparse, see the spec files for usage examples.'
   test_dir    'tests'
   ignore      '.*.sw[pon]', 'pkg', 'Gemfile.lock', 'coverage', '.rvmrc',
     '.AppleDouble', 'tags', '.byebug_history', '.DS_Store'
@@ -19,7 +19,6 @@ GemHadar do
   dependency 'activerecord',         '>= 4.1', '<7'
   dependency 'actionpack'  ,         '>= 4.1', '<7'
   dependency 'database_cleaner',     '~> 1.3'
-  development_dependency 'cucumber', '~> 1.3'
   development_dependency 'mysql2'
   development_dependency 'rspec',    '~> 3.1'
   development_dependency 'simplecov'
@@ -30,26 +29,26 @@ def connect_database
   require 'logger'
   require 'active_record'
   require 'complex_config'
-  config = ComplexConfig::Provider.config 'features/db/database.yml'
+  config = ComplexConfig::Provider.config 'spec/db/database.yml'
   connection_config = config.acts_as_account.to_h
   connection_config.delete(:database)
   ActiveRecord::Base.establish_connection(connection_config).connection
 end
 
-namespace :features do
+namespace :spec do
   desc "create test database out of db/schema.rb"
   task :create_database do
     conn = connect_database
     conn.execute('DROP DATABASE IF EXISTS acts_as_account')
     conn.execute('CREATE DATABASE acts_as_account')
     conn.execute('USE acts_as_account')
-    load(File.dirname(__FILE__) + '/features/db/schema.rb')
+    load(File.dirname(__FILE__) + '/spec/db/schema.rb')
   end
 end
 
-desc "Run features"
-task :features => :'features:create_database' do
-  ruby '-S', 'cucumber'
+desc "Run specs"
+task :spec => :'spec:create_database' do
+  ruby '-S', 'rspec', 'spec'
 end
 
-task :test => :features
+task :test => :spec
