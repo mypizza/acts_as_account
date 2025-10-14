@@ -3,3 +3,9 @@
 source 'https://rubygems.org'
 
 gemspec
+
+gem "logger", "~> 1.7"
+
+gem "mutex_m", "~> 0.3.0"
+
+gem "fiddle", "~> 1.1"
